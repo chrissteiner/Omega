@@ -13,15 +13,16 @@
 //   ws.send('Hello! Message From Server!!')
 // })
 // //----------------------------------------------- SERVER FOR Web -------------------------
-// var app = require('express')();
-// var server = require('http').Server(app);
+var app = require('express')();
+var server = require('http').Server(app);
 // var io = require('socket.io')(server);
+const api_port = 8080;
+app.get('/', function(req, res) {
+    res.sendFile(__dirname + '/index.html');
+});
 
-// app.get('/', function(req, res) {
-//     res.sendFile(__dirname + '/index.html');
-// });
-
-// server.listen(3001); 
+server.listen(api_port); 
+console.log(`API-Server running at http://localhost:${api_port}`);
 // console.log("running on 8080");
 // var numClients = 0;
 // io.on('connection', function(socket) {
@@ -54,6 +55,7 @@ const WebSocket = require('ws');
 const { stringify } = require('querystring');
 const { Console } = require('console');
 const { kill } = require('process');
+const { Serializer } = require('v8');
 const port = 3000;
 const wss = new WebSocket.Server({ port: port });
 console.log(`Websocket-Server running at http://localhost:${port}`);
@@ -61,6 +63,7 @@ var numClients = 0;
 var CLIENTS=[];
 var id;
 var IOT=[];
+var answer = JSON.stringify({info: 'Hello from Server'});
 
 wss.on('connection', ws => {
     numClients=addConnection(ws);
@@ -69,15 +72,16 @@ wss.on('connection', ws => {
 
     ws.on('close', msg => {
         console.log("client wants to close")
-        console.log(ws)
-        numClients = rmConnection(ws, "nein")
+        // console.log(ws)
+        numClients = rmConnection(ws)
     });
 
     ws.on('message', message => {
-        console.log(`Received message => ${message}`)
+        // console.log(`Received message => ${message}`)
         // ws.send("This is server speaking");
         var received = JSON.parse(message);
-
+        console.log("Got message: ");
+        console.log(received)
         if(received.message == "hoden"){
             console.log(id);
             ws.send(message + " selber");  // send message to itself
@@ -88,12 +92,20 @@ wss.on('connection', ws => {
         }else if(received.message == "authentification"){
             addSensor(received, ws)
 
-        }else if(received.message == "penis"){
-        checkIfDouble(IOT, CLIENTS);
+        }else if(received.Innenlicht == "toggle"){
+            console.log("toggle");
+            ws.send(message);
+            sendAll(message);
+        }else if(received.admin == "connected_clients"){
+            IOT.forEach(element => {
+                console.log(element.deviceID);    
+            });
+            
         }
+
     });
 
-  ws.send('Hello! Message From Server!!')
+  ws.send(answer)
 })
 
 const heartbeat = (ws) => {
@@ -113,7 +125,7 @@ const interval = setInterval(() => {
         ws.isAlive = false
         ws.ping(() => { ping(ws) })
     })
-  }, 30000)
+  }, 600000)
 
 function addConnection(ws){
     var id = Math.random().toString(36).substr(2, 10);
@@ -124,21 +136,27 @@ function addConnection(ws){
     return numClients;
 }
 
-function rmConnection(ws, killID){
-    if(killID=="nein"){
-        console.log("Client disconnected!")
-        ws.terminate();
-    }else{
-        console.log("Sensor connection terminated, cause of dead connection!")
-        console.log(ws['Socket'])
-        ws['Socket'].terminate();
-    }
-    
-    numClients--; console.log('Connected clients:', numClients); 
-    // delete CLIENTS[id];
-    IOT.splice(killID, 1);
-    CLIENTS.splice(id, 1);
-    return numClients;
+function rmConnection(ws){
+    // console.log(ws)
+    CLIENTS.forEach(function(socket, index) {
+        if(socket==ws['Socket']){
+            console.log("Websocket wurde GEFUNDEN");
+            IOT.forEach(function(element, i) {
+                if(element['Socket']==socket){ //if the leaving Device is a Sensor, then remove from IOT array
+                    console.log("leaving device is a Sensor");
+                    IOT.splice(i, 1); //remove from IOT array
+                }
+            });
+            
+            socket.terminate();
+            console.log("Client disconnected!")
+            numClients--; console.log('Connected clients:', numClients); 
+            // delete CLIENTS[id]; 
+            CLIENTS.splice(index, 1); //remove from CLIENTS array
+            return numClients;  
+        }
+        console.log("Die Verbindung konnte nicht gefunden werden");
+    });
 }
 
 function sendAll(message) {
@@ -169,8 +187,13 @@ function checkIfDouble(IOT, CLIENTS) {
     if(arrayWithoutDouplicates.length < arrayOfIds.length){ //Set macht ein neues Array aus einem bestehenden, ohne Duplikate
         for(var i=0; i < arrayOfIds.length; i++){
            if(arrayWithoutDouplicates[i] != arrayOfIds[i]){
-            console.log("removing douplicate connection with Id: "+ arrayOfIds[i])   
-            rmConnection(IOT[i], i)
+            console.log("removing douplicate connection with deviceID: "+ arrayOfIds[i])  
+            IOT.forEach(function(element, index) {
+                if(element["deviceID"]==arrayOfIds[i]){ //es werden zwei arrays miteinenader verglichen. das original und das ohne duplikate. bei der ersten abweichung kann im Original die deviceID festgestellt werden, allerdings ist dies die zweite (aktive) Verbindung. gekillt muss die erste (inaktive) Verbindung dieses Geräts werden
+                    rmConnection(IOT[index]);
+                    return;
+                }
+            }); 
             return
             } //ohne return würden viel mehr connections getötet       
         }
