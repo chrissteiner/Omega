@@ -128,10 +128,10 @@ const interval = setInterval(() => {
   }, 600000)
 
 function addConnection(ws){
-    var id = Math.random().toString(36).substr(2, 10);
-    CLIENTS[id] = ws;
+    // var id = Math.random().toString(36).substr(2, 10);
+    // CLIENTS[id] = ws;
     CLIENTS.push(ws);
-    console.log("Client connected! %o", id)
+    console.log("Client connected!")
     numClients++; console.log('Connected clients:', numClients);
     return numClients;
 }
@@ -155,8 +155,9 @@ function rmConnection(ws){
             CLIENTS.splice(index, 1); //remove from CLIENTS array
             return numClients;  
         }
-        console.log("Die Verbindung konnte nicht gefunden werden");
+        return numClients;  
     });
+    return numClients;
 }
 
 function sendAll(message) {
