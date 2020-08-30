@@ -1,28 +1,118 @@
 <!doctype html>
 <html>
-  <head>
-    <title>Socket.IO chat</title>
-    <style>
-      * { margin: 0; padding: 0; box-sizing: border-box; }
-      body { font: 13px Helvetica, Arial; }
-      form { background: #000; padding: 3px; position: fixed; bottom: 0; width: 100%; }
-      form input { border: 0; padding: 10px; width: 90%; margin-right: .5%; }
-      form button { width: 9%; background: rgb(130, 224, 255); border: none; padding: 10px; }
-      #messages { list-style-type: none; margin: 0; padding: 0; }
-      #messages li { padding: 5px 10px; }
-      #messages li:nth-child(odd) { background: #eee; }
-      #messages { margin-bottom: 40px }
-    </style>
-    <script src="client.js"></script>
-  </head>
-  <body>
-    <ul id="messages"></ul>
-    <form action="">
-      <input id="m" autocomplete="off" /><button onclick="sendWSMsg()">Senden</button>
-    </form>
-    <script src="https://cdn.socket.io/socket.io-1.2.0.js"></script>
-    <script src="https://code.jquery.com/jquery-1.11.1.js"></script>
-    <!-- <script>
+
+<head>
+  <title>Socket.IO chat</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font: 13px Helvetica, Arial;
+    }
+
+    form {
+      background: #000;
+      padding: 3px;
+      position: fixed;
+      bottom: 0;
+      width: 100%;
+    }
+
+    form input {
+      border: 0;
+      padding: 10px;
+      width: 90%;
+      margin-right: .5%;
+    }
+
+    form button {
+      width: 9%;
+      background: rgb(130, 224, 255);
+      border: none;
+      padding: 10px;
+    }
+
+    #messages {
+      list-style-type: none;
+      margin: 0;
+      padding: 0;
+    }
+
+    #messages li {
+      padding: 5px 10px;
+    }
+
+    #messages li:nth-child(odd) {
+      background: #eee;
+    }
+
+    #messages {
+      margin-bottom: 40px
+    }
+  </style>
+  <script type="text/javascript">
+    console.log('WebSocket client script will run here.');
+
+    const ws = new WebSocket('ws://localhost:3000', ['json', 'xml']);
+    // console.log("Passiert hier was? jouuu");
+    ws.addEventListener('open', () => {
+      const data = { message: 'Hello this is client speaking!' }
+      const json = JSON.stringify(data);
+      console.log(json);
+      ws.send(json);
+    });
+    // ws.addEventListener('message', event => {
+    //   // const data = JSON.parse(event.data);
+    //   console.log(event.data + "du hoden");
+    // });
+  //   document.getElementById('#Innenlicht').onsubmit = function () {
+  //   let muser = document.getElementById('m');
+  // console.log(muser);  
+  // }
+
+    function sendWebS(){
+      var data={"light":"toggle"};
+      const json = JSON.stringify(data);
+      console.log(json);
+      ws.send(json);
+    }
+  </script>
+</head>
+
+<body>
+  <ul id="messages"></ul>
+
+  <!-- <script src="https://cdn.socket.io/socket.io-1.2.0.js"></script> -->
+  <script src="https://code.jquery.com/jquery-1.11.1.js"></script>
+  
+  
+
+  <form id="Innenlicht" action="">
+    <input id="m" type="submit" value="light">
+  </form>
+  <div id="Aussenlicht"> Außenlicht </div>
+
+  <script>
+  $( "#Innenlicht" ).submit(function( event ) {
+    sendWebS();
+    event.preventDefault();
+  });
+  // $( "#Aussenlicht" ).submit(function( event ) {
+  //   sendWebS();
+  //   event.preventDefault();
+  // });
+
+  // $( "#Aussenlicht" ).click(function() {
+  //   $( "#target" ).submit();
+  // });
+  </script>
+
+
+  <!-- <script>
       $(function () {
         var socket = io();
         $('form').submit(function(){
@@ -36,5 +126,6 @@
         });
       });
     </script> -->
-  </body>
+</body>
+
 </html>

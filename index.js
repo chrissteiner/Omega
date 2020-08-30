@@ -92,9 +92,9 @@ wss.on('connection', ws => {
         }else if(received.message == "authentification"){
             addSensor(received, ws)
 
-        }else if(received.Innenlicht == "toggle"){
-            console.log("toggle");
-            ws.send(message);
+        }else if(received.light == "toggle"){
+            console.log("toggle light");
+            // ws.send(message);
             sendAll(message);
         }else if(received.admin == "connected_clients"){
             IOT.forEach(element => {
@@ -157,14 +157,15 @@ function rmConnection(ws){
         }
         return numClients;  
     });
+    console.log("Client connection already dead");
     return numClients;
 }
 
 function sendAll(message) {
     console.log('sendAll : ' + CLIENTS.length);      
     for (var j=0; j < CLIENTS.length; j++) {
-        console.log(CLIENTS[j])
-        console.log('FOR : ', message);
+        // console.log(CLIENTS[j])
+        console.log('Message : ', message);
         CLIENTS[j].send(message);
     }
 }
